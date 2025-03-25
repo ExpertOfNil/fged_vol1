@@ -26,6 +26,8 @@ struct Mat3 {
     Vec3 z_axis;
 };
 
+Mat3 Mat3_Add(Mat3 a, Mat3 b);
+Mat3 Mat3_Sub(Mat3 a, Mat3 b);
 Vec3 Mat3_MulVec(Mat3 mat, Vec3 vec);
 Mat3 Mat3_Mul(Mat3 a, Mat3 b);
 Mat3 Mat3_Transpose(Mat3 mat);
@@ -79,6 +81,22 @@ Vec3 Vec3_Cross(Vec3 a, Vec3 b) {
         .z = a.x * b.y - a.y * b.x,
     };
 };
+
+Mat3 Mat3_Add(Mat3 a, Mat3 b) {
+    return Mat3 {
+        .x_axis = Vec3_Add(a.x_axis, b.x_axis),
+        .y_axis = Vec3_Add(a.y_axis, b.y_axis),
+        .z_axis = Vec3_Add(a.z_axis, b.z_axis),
+    };
+}
+
+Mat3 Mat3_Sub(Mat3 a, Mat3 b) {
+    return Mat3 {
+        .x_axis = Vec3_Sub(a.x_axis, b.x_axis),
+        .y_axis = Vec3_Sub(a.y_axis, b.y_axis),
+        .z_axis = Vec3_Sub(a.z_axis, b.z_axis),
+    };
+}
 
 Mat3 Mat3_Transpose(Mat3 mat) {
     return Mat3 {
