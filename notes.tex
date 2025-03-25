@@ -1,0 +1,586 @@
+\documentclass[11pt]{article}
+\usepackage{geometry, amsmath}
+\geometry{letterpaper, left=0.5in, right=0.5in, top=1.0in, bottom=1.0in}
+\setlength\parindent{0pt}
+
+\newcommand{\bm}[1]{\mathbf{#1}}
+\DeclareMathOperator{\sign}{sgn}
+\DeclareMathOperator{\adj}{adj}
+\DeclareMathOperator{\rot}{rot}
+\DeclareMathOperator{\reflect}{reflect}
+\DeclareMathOperator{\invol}{invol}
+\DeclareMathOperator{\scale}{scale}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\title{Notes from\\\textit{Foundations of Game Engine Development\\Volume 1: Mathematics}}
+\author{Matt McKenna}
+
+\begin{document}
+\begin{titlepage}
+\clearpage\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+\section*{1 Vectors and Matrices}
+\subsection*{1.2 Basic Vector Operations}
+
+"It's important to realize that a vector by itself does not have any specific location in space.
+The information it posseses is merely an oriented magnitude and nothing more."
+
+\subsubsection*{1.4.2 Matrix Multiplication}
+\begin{itemize}
+    \item When an $n \times p$ matrix $\bm{A}$ is multiplied by $p \times m$ matrix $\bm{B}$ the
+        $(i, j)$ entry of the matrix product $\bm{AB}$ is given by:
+        \begin{equation}
+            (\bm{AB})_{ij} = \sum_{k=0}^{p-1} A_{ik} B_{kj}
+        \end{equation}
+
+    \item The $(i, j)$ entry of $(\bm{AB})^T$ is the $(j, i)$ entry of $\bm{AB}$:
+        \begin{equation}
+            (\bm{AB})^\text{T}_{ij} = (\bm{AB})_{ji} = \sum_{k=0}^{p-1} A_{jk} B_{ki}
+        \end{equation}
+
+    \item Multiplying a $3 \times 3$ matrix $\bm{M}$ multiplied by a $3 \times 1$ column vector
+        $\bm{v}$:
+        $$
+        \bm{Mv} =
+        \begin{bmatrix}
+            M_{00} & M_{01} & M_{02} \\
+            M_{10} & M_{11} & M_{12} \\
+            M_{20} & M_{21} & M_{22}
+        \end{bmatrix}
+        \begin{bmatrix}
+            v_x \\
+            v_y \\
+            v_z
+        \end{bmatrix} =
+        \begin{bmatrix}
+            M_{00} v_x & M_{01} v_y & M_{02} v_z \\
+            M_{10} v_x & M_{11} v_y & M_{12} v_z \\
+            M_{20} v_x & M_{21} v_y & M_{22} v_z
+        \end{bmatrix}
+        $$
+
+\item If we write $\bm{M} = [\bm{a}, \bm{b}, \bm{c}]$, then we have:
+    \begin{equation}
+        \mathbf{Mv} = v_x \mathbf{a} + v_x \mathbf{b} + v_x \mathbf{c}
+    \end{equation}
+\item Multiplication of transposed matrices:
+    \begin{equation}
+        (\bm{AB})^T = \bm{B}^T \bm{A}^T
+    \end{equation}
+\end{itemize}
+
+\subsubsection*{1.5.1 Dot Product}
+\begin{equation}
+    \bm{a} \cdot \bm{b} = \sum_{i=0}^{n-1} a_i b_i
+    = \bm{a}^\text{T} \bm{b}
+    = \left\|\bm{a}\right\| \norm{\bm{b}} \cos \theta
+\end{equation}
+\begin{itemize}
+    \item Provides a computationally cheap way to determine how much two vectors are parallel or perpendicular to each other.
+    \item If $\bm{a}$ and $\bm{b}$ are unit vectors, then $\bm{a} \cdot \bm{b} = \cos \theta$ and the range of the cosine function is $[-1, 1]$
+    \item Assuming $\norm{\bm{a}} = \norm{\bm{b}}$, $\bm{a} \cdot \bm{b}$ is:
+    \begin{itemize}
+        \item Maximally positive when $\bm{a}$ and $\bm{b}$ point in the same direction.
+        \item Maximally negative when $\bm{a}$ and $\bm{b}$ point in opposite directions.
+        \item Zero when $\bm{a}$ and $\bm{b}$ are perpendicular, regardless of magnitude
+    \end{itemize}
+    \item Squared magnitude of a vector:
+        \begin{equation}
+            v^2 = \bm{v} \cdot \bm{v} = \norm{\bm{v}}^2
+        \end{equation}
+\end{itemize}
+
+\subsubsection*{1.5.2 Cross Product}
+\begin{equation}
+    \bm{a} \times \bm{b} =
+        \left(a_y b_z - a_z b_y, a_z b_x - a_x b_z, a_x b_y - a_y b_x\right)
+\end{equation}
+
+\begin{itemize}
+\item Can also be expressed as a matrix product by forming a special $3 \times 3$ antisymmetric matrix denoted by
+    \begin{equation}
+        \left[ \bm{a} \right]_\times =
+        \begin{bmatrix}
+            0 & -a_z & a_y \\
+            a_z & 0 & -a_x \\
+            -a_y & a_x & 0
+        \end{bmatrix}
+    \end{equation}
+    \begin{equation*}
+        \bm{a} \times \bm{b} = \left[\bm{a}\right]_\times \bm{b} =
+        \begin{bmatrix}
+            0 & -a_z & a_y \\
+            a_z & 0 & -a_x \\
+            -a_y & a_x & 0
+        \end{bmatrix}
+        \begin{bmatrix}
+            b_x \\
+            b_y \\
+            b_z
+        \end{bmatrix} =
+        \begin{bmatrix}
+            -a_z b_y + a_y b_z \\
+            a_z b_x - a_x b_z \\
+            -a_y b_x + a_x b_y
+        \end{bmatrix}
+    \end{equation*}
+\item Only defined for 3-dimensions, whereas dot product is defined for all numbers of dimensions
+\item Actually a subtle misinterpretation of a more general and more algebraically sound operation called the \textit{wedge product}.
+\item Zero when $\bm{a}$ and $\bm{b}$ are parallel
+\item When $\bm{a}$ and $\bm{b}$ are not parallel, $\bm{a} \times \bm{b}$ is a new vector that is perpendicular to both $\bm{a}$ and $\bm{b}$
+\item Has a magnitude equal to the area of the parallelogram having sides $\bm{a}$ and $\bm{b}$:
+    \begin{equation}
+        \norm{\bm{a} \times \bm{b}} = \norm{\bm{a}} \norm{\bm{b}} \sin \theta
+    \end{equation}
+\item Other identities:
+    \begin{align*}
+        \bm{a} \times \bm{b} &= -\bm{b} \times \bm{a} \\
+        \bm{a} \times \left( \bm{b} \times \bm{c} \right) &=
+            \bm{b} \left(\bm{a} \cdot \bm{c} \right)
+            - \bm{c} \left(\bm{a} \cdot \bm{b} \right)
+    \end{align*}
+\end{itemize}
+
+\subsubsection*{1.5.3 Scalar Triple Product}
+\begin{equation} \label{eqn:triple}
+    \bm{\left[ a, b, c \right]} =
+    \left(\bm{a} \times \bm{b}\right) \cdot \bm{c} =
+    \left(\bm{b} \times \bm{c}\right) \cdot \bm{a} =
+    \left(\bm{c} \times \bm{a}\right) \cdot \bm{b}
+\end{equation}
+
+\subsection*{1.6 Vector Projection}
+\begin{itemize}
+\item Projection of $\bm{a}$ onto $\bm{b}$:
+    \begin{equation}
+        \bm{a}_{\left\|\bm{b}\right.} =
+        \frac{\bm{a} \cdot \bm{b}}{b^2} \bm{b}
+    \end{equation}
+
+\item $\bm{a}_{\left||b\right.}$ indicates the component of the vector $\bm{a}$ that is parallel to the vector $\bm{b}$ (alternatively $\text{proj}_\bm{b} \bm{a}$)
+    \begin{equation}
+        \bm{a}_{\left\|\bm{b}\right.} =
+        \frac{1}{b^2} \bm{b}\bm{b}^\text{T} \bm{a} =
+        \frac{1}{b^2}
+        \begin{bmatrix}
+        b_x^2 & b_x b_y & b_x b_z \\
+        b_x b_y & b_y^2 & b_y b_z \\
+        b_x b_z & b_y b_z & b_z^2
+        \end{bmatrix}
+    \end{equation}
+
+\item Where $\bm{b} \bm{b}^\text{T}$ is a symmetric matrix and an example of an \textit{outer product}
+    \begin{equation}
+        \bm{u} \otimes \bm{v} = \bm{u} \bm{v}^\text{T} =
+        \begin{bmatrix}
+        u_x \\
+        u_y \\
+        u_z
+        \end{bmatrix}
+        \begin{bmatrix}
+        v_x & v_y & v_z
+        \end{bmatrix} =
+        \begin{bmatrix}
+        u_x v_x & u_x v_y & u_x v_z \\
+        u_y v_x & u_y v_y & u_y v_z \\
+        u_z v_x & u_z v_y & u_z v_z
+        \end{bmatrix}
+    \end{equation}
+\item If we subtract the projection $\bm{a}_{\left||b\right.}$ from the original vector $\bm{a}$, the we get the part that is perpendicular to the vector $\bm{b}$, called the rejection of $\bm{a}$ from $\bm{b}$.
+    \begin{equation}
+        \bm{a}_{\perp \bm{b}} = \bm{a} - \bm{a}_{\left\|\bm{b}\right.} = \bm{a} - \frac{\bm{a} \cdot \bm{b}}{b^2} \bm{b}
+    \end{equation}
+\item From a set of $n$ linearly independent vectors $\left\{ \bm{v}_1, \bm{v}_2, \ldots, \bm{v}_n \right\}$, the \textit{Gram-Schmidt process} can be used to produce a set of mutually orthogonal vectors $\left\{  \bm{u}_1, \bm{u}_2, \ldots, \bm{u}_n \right\}$.  For example, a set of 3 vectors $\left\{  \bm{v}_1, \bm{v}_2, \bm{v}_3 \right\}$ is orthogonalized using the calculations:
+    $$
+    \begin{aligned}
+        \bm{u}_1 &= \bm{v}_1 \\
+        \bm{u}_2 &=
+            \bm{v}_2
+            - \left( \bm{v}_2 \right)_{\left|| \bm{u}_1 \right.} \\
+        \bm{u}_3 &=
+            \bm{v}_3
+            - \left( \bm{v}_3 \right)_{\left|| \bm{u}_1 \right.}
+            - \left( \bm{v}_3 \right)_{\left|| \bm{u}_2 \right.}\\
+    \end{aligned}
+    $$
+
+    It is common that the vectors $\bm{u}_i$ be renormalized to unit length after the orthogonalization process
+\end{itemize}
+
+\subsection*{1.7 Matrix Inversion}
+The identity matrix:
+$$
+\bm{I}_n =
+\begin{bmatrix}
+    1 & 0 & \ldots & 0 \\
+    0 & 1 & \ldots & 0 \\
+    \vdots & \vdots & \ddots & \vdots \\
+    0 & 0 & \ldots & 1 \\
+\end{bmatrix}
+$$
+which allows us to define the inverse of a matrix:
+\begin{equation} \bm{M}^{-1} \bm{M} = \bm{M}\bm{M}^{-1} = \bm{I} \end{equation}
+
+\subsubsection*{1.7.2 Determinants}
+\begin{itemize}
+\item A matrix has an inverse if, and only if, its determinant is not zero
+\item The determinant of any $n \times n$ matrix $\bm{M}$ can be expressed using the Leibniz formula for determinants:
+    \begin{equation}
+        \det(\bm{M}) = \sum_{\sigma \in S_n} \left( \sign \left(\sigma\right) \prod_{k=0}^{n-1} M_{k,\sigma(k)} \right)
+        \label{eqn:leibniz}
+    \end{equation}
+\item Using expansion by minors, , the determinant of an $n \times n$
+    matrix $\bm{M}$ is given by:
+    \begin{equation} \label{eqn:minors}
+        \det(\bm{M}) = \sum_{j=0}^{n-1} M_{kj} (-1)^{k+j} \left|\bm{M}_{\overline{kj}}\right|
+    \end{equation}
+    where $\bm{M}_{\overline{ij}}$ is the submatrix that excludes row $i$ and
+    column $j$, and $k$ can be chosen to be any fixed row in the matrix.
+\end{itemize}
+
+\subsubsection*{1.7.3 Elementary Matrices}
+There are 3 elementary row operations:
+\begin{enumerate}
+    \item Multiply one row of matrix $\bm{M}$ by a nonzero scalar value $t$
+        \begin{equation}
+            \bm{E} = \begin{bmatrix}
+                1 & \ldots & 0 & \ldots & 0 \\
+                \vdots & \ddots & \vdots & & \vdots \\
+                0 & \ldots & t & \ldots & 0 \\
+                \vdots & & \vdots & \ddots & \vdots \\
+                0 & \ldots & 0 & \ldots & 1
+            \end{bmatrix}
+            \leftarrow \text{row } r
+        \end{equation}
+        This causes the determinant of $\bm{M}$ to be multiplied by $t$.
+    \item Exchange 2 rows of $\bm{M}$
+        \begin{equation}
+            \bm{E} = \begin{bmatrix}
+                1 & \ldots & 0 & \ldots & 0 & \ldots & 0\\
+                \vdots & \ddots & \vdots & & \vdots & & \vdots \\
+                0 & \ldots & 0 & \ldots & 1 & \ldots & 0 \\
+                \vdots & & \vdots & \ddots & \vdots & & \vdots \\
+                0 & \ldots & 1 & \ldots & 0 & \ldots & 0 \\
+                \vdots & & \vdots & & \vdots & \ddots & \vdots \\
+                0 & \ldots & 0 & \ldots & 0 & \ldots & 1
+            \end{bmatrix}
+            \begin{matrix}
+                \phantom{0}\\
+                \phantom{\vdots}\\
+                \leftarrow \text{row } r\\
+                \phantom{\vdots}\\
+                \leftarrow \text{row } s \\
+                \phantom{\vdots}\\
+                \phantom{0}\\
+            \end{matrix}
+        \end{equation}
+        This causes the determinant of $\bm{M}$ to be negated.  Because of this,
+        the determinant of $\bm{M}$ is zero if any 2 rows are the same.
+    \item Add a scalar multiple of one row of $\bm{M}$ to another row of $\bm{M}$
+        \begin{equation}
+        \begin{aligned}
+            &\phantom{=} \begin{matrix}
+                \phantom{0} & \phantom{\ldots} & \phantom{0} & \phantom{ll} & \text{column } s & \phantom{\ldots} & \phantom{0}\\
+                \phantom{0} & \phantom{\ldots} & \phantom{0} & \phantom{ll} & \downarrow & \phantom{\ldots} & \phantom{0}\\
+            \end{matrix} \\
+            \bm{E} &= \begin{bmatrix}
+                1 & \ldots & 0 & \ldots & 0 & \ldots & 0\\
+                \vdots & \ddots & \vdots & & \vdots & & \vdots \\
+                0 & \ldots & 0 & \ldots & 1 & \ldots & 0 \\
+                \vdots & & \vdots & \ddots & \vdots & & \vdots \\
+                0 & \ldots & 1 & \ldots & 0 & \ldots & 0 \\
+                \vdots & & \vdots & & \vdots & \ddots & \vdots \\
+                0 & \ldots & 0 & \ldots & 0 & \ldots & 1
+            \end{bmatrix}
+            \begin{matrix}
+                \phantom{0}\\
+                \phantom{\vdots}\\
+                \leftarrow \text{row } r\\
+                \phantom{\vdots}\\
+                \leftarrow \text{row } s \\
+                \phantom{\vdots}\\
+                \phantom{0}\\
+            \end{matrix}
+        \end{aligned}
+        \end{equation}
+        This does not change the determinant of $\bm{M}$.
+\end{enumerate}
+
+\subsubsection*{1.7.4 Inverse Calculation}
+If it exists, the inverse of a matrix can be found using \textit{Gauss-Jordan elimination},
+where elementary row operations are successively applied to the matrix until it
+is transformed into the identity matrix.
+\begin{itemize}
+    \item General method for square matrices of any size
+    \item For matrices of smaller size, faster methods exist
+\end{itemize}
+
+    \subsubsection*{1.7.5 Inverses of Small Matrices}
+    This approach uses the minors with alternating signs that appear in the formula
+    for the determinant given by \eqref{eqn:minors}.
+    \begin{itemize}
+    \item The \textit{cofactor} of the $(i, j)$ entry of $\bm{M}$:
+        \begin{equation}
+            C_{ij} \left(\bm{M}\right) = \left(-1\right)^{i+j} \left| \bm{M}_{\overline{ij}} \right|
+        \end{equation}
+    \item The \textit{cofactor matrix} $\bm{C}\left(\bm{M}\right)$ of an $n \times n$
+        matrix $\bm{M}$ is the matrix in which every entry of $\bm{M}$ has been
+        replaced by the corresponding cofactor.
+    \item The formula for the inverse of a matrix $\bm{M}$ using its cofactor matrix:
+        \begin{equation}
+            \bm{M}^{-1} = \frac{\bm{C}^{\text{T}} \left(\bm{M}\right)}{\det \left(\bm{M}\right)}
+        \end{equation}
+    \item The matrix $\bm{C}^{\text{T}}$ is called the \textit{adjugate} of the matrix $\bm{M}$,
+        and it is denoted by $\adj \left(\bm{M}\right)$
+    \item For a $2 \times 2$ matrix $\bm{A}$, the explicit inverse formula is
+        \begin{equation}
+            \bm{A}^{-1} = \frac{1}{A_{00}A_{11} - A_{01}A_{10}}
+            \begin{bmatrix}
+                A_{11} & -A_{01} \\
+                -A_{10} & -A_{00}
+            \end{bmatrix}
+        \end{equation}
+    \item For a $3 \times 3$ matrix $\bm{B}$, the explicit inverse formula is
+        \begin{equation}
+            \bm{B}^{-1} = \frac{1}{\det \left(\bm{B}\right)}
+            \begin{bmatrix}
+                B_{11}B_{22}-B_{12}B_{21} & B_{02}B_{21}-B_{01}B_{22} & B_{01}B_{12}-B_{02}B_{11} \\
+                B_{12}B_{20}-B_{10}B_{22} & B_{00}B_{22}-B_{02}B_{20} & B_{02}B_{10}-B_{00}B_{12} \\
+                B_{10}B_{21}-B_{11}B_{20} & B_{01}B_{20}-B_{00}B_{21} & B_{00}B_{11}-B_{01}B_{10}
+            \end{bmatrix}
+        \end{equation}
+        Note that each row in this formula is a cross product of two columns of the
+        matrix $\bm{B}$, and the determinant is equal to the triple product \eqref{eqn:triple} of the
+        three columns of the matrix.
+    \item The inverse of a matrix $\bm{M} = \bm{ \left[ a, b, c \right] }$
+        whose column are the 3D vectors $\bm{a}$, $\bm{b}$, and $\bm{c}$ can be written as
+        \begin{equation}
+            \bm{M}^{-1} = \frac{1}{\left[ \bm{a}, \bm{b}, \bm{c} \right]}
+            \begin{bmatrix}
+                \bm{b} \times \bm{c} \\
+                \bm{c} \times \bm{a} \\
+                \bm{a} \times \bm{b} \\
+            \end{bmatrix}
+        \end{equation}
+        where the cross products are treated as row vectors.
+    \item Let $\bm{M}$ be a $4 \times 4$ matrix whose first 3 rows are filled by the
+        four 3D column vectors $\bm{a}$,$\bm{b}$,$\bm{c}$, and $\bm{d}$, and whose
+        fourth row contains the entries $\begin{bmatrix} x & y & z & w \end{bmatrix}$
+        \begin{equation}
+            \bm{M} =
+            \begin{bmatrix}
+                \uparrow & \uparrow & \uparrow & \uparrow \\
+                \bm{a} & \bm{b} & \bm{c} & \bm{d} \\
+                \downarrow & \downarrow & \downarrow & \downarrow \\
+                - & - & - & - \\
+                x & y & z & w
+            \end{bmatrix}
+        \end{equation}
+        Then we define the four vectors $\bm{s}$, $\bm{t}$, $\bm{u}$, and $\bm{v}$, as
+        \begin{align}
+            \bm{s} &= \bm{a} \times \bm{b} \\
+            \bm{t} &= \bm{c} \times \bm{d} \\
+            \bm{u} &= y\bm{a} - x\bm{b} \\
+            \bm{v} &= w\bm{c} - z\bm{d}
+        \end{align}
+        The determinant takes the form
+        \begin{equation}
+            \det \left(\bm{M}\right) = \bm{s} \cdot \bm{v} + \bm{t} \cdot \bm{u}
+        \end{equation}
+        and the inverse of $\bm{M}$ is given by
+        \begin{equation}
+            \bm{M}^{-1} = \frac{1}{\bm{s} \cdot \bm{v} + \bm{t} \cdot \bm{u}}
+            \left[
+            \begin{array}{c | r}
+                \bm{b} \times \bm{v} + y\bm{t} & -\bm{b} \cdot \bm{t} \\
+                \bm{v} \times \bm{a} - x\bm{t} & \bm{a} \cdot \bm{t} \\
+                \bm{d} \times \bm{u} + w\bm{s} & -\bm{d} \cdot \bm{s} \\
+                \bm{u} \times \bm{c} + z\bm{s} & \bm{c} \cdot \bm{s}
+            \end{array}
+            \right]
+    \end{equation}
+\end{itemize}
+
+\section*{2 Transformations}
+\subsection*{2.1 Coordinate Spaces}
+\subsubsection*{2.1.1 Transformation Matrices}
+\begin{itemize}
+    \item The transformationfrom a position $\bm{p}_A$ in coordinate system $A$
+        to the position $\bm{p}_B$ in coordinate system $B$ can be expressed as
+        \begin{equation}
+            \bm{p}_B = \bm{M}\bm{p}_A + \bm{t}
+        \end{equation}
+        where $\bm{M}$ is a $3 \times 3$ matrix that reorients the coordinate axes,
+        and $\bm{t}$ is a 3D translation vector that moves the origin of the
+        coordinate system.
+\end{itemize}
+\subsubsection*{2.1.2 Orthogonal Transforms}
+    \begin{itemize}
+        \item The inverse of an orthogonal matrix is equal to its transpose.
+            Assuming that $\bm{a}$, $\bm{b}$, and $\bm{c}$ all have unit
+            length and are mutually perpendicular
+            \begin{equation}
+                \bm{M}^\text{T}\bm{M} =
+                \begin{bmatrix}
+                    \leftarrow & \bm{a}^\text{T} & \rightarrow \\
+                    \leftarrow & \bm{b}^\text{T} & \rightarrow \\
+                    \leftarrow & \bm{c}^\text{T} & \rightarrow \\
+                \end{bmatrix}
+                \begin{bmatrix}
+                    \uparrow & \uparrow & \uparrow \\
+                    \bm{a} & \bm{b} & \bm{c} \\
+                    \downarrow & \downarrow & \downarrow
+                \end{bmatrix} =
+                \begin{bmatrix}
+                    a^2 & \bm{a} \cdot \bm{b} & \bm{a} \cdot \bm{c} \\
+                    \bm{b} \cdot \bm{a} & b^2 & \bm{b} \cdot \bm{c} \\
+                    \bm{c} \cdot \bm{a} & \bm{c} \cdot \bm{b} & c^2
+                \end{bmatrix}=
+                \begin{bmatrix}
+                    1 & 0 & 0 \\
+                    0 & 1 & 0 \\
+                    0 & 0 & 1
+                \end{bmatrix}
+            \end{equation}
+            Since $\bm{a}$, $\bm{b}$, and $\bm{c}$ each have unit length
+            and are perpendicular, all diagonal entries are ones and
+            all other entries are zero.  This means $\bm{M}^\text{T}\bm{M} = \bm{I}$
+            and, therefore, $\bm{M}^\text{T} = \bm{M}^{-1}$.
+        \item Orthogonal matrices preserve the dot product between any two vectors
+            $\bm{a}$ and $\bm{b}$.  Given the vectors after they are
+            transformed by orthogonal matrix $\bm{M}$
+            \begin{equation}
+                \left(\bm{M}\bm{a}\right) \cdot \left(\bm{M}\bm{b}\right) =
+                \left(\bm{M}\bm{a}\right)^\text{T} \cdot \left(\bm{M}\bm{b}\right) =
+                \bm{a}^\text{T}\bm{M}^\text{T} \cdot \bm{M}\bm{b} =
+                \bm{a}^\text{T} \bm{b} = \bm{a} \cdot \bm{b}
+                \label{eqn:ortho_dot_proof}
+            \end{equation}
+            Since $\bm{a} \cdot \bm{a}$ is the squared magnitude of $\bm{a}$,
+            \eqref{eqn:ortho_dot_proof} also proves that magnitude is not
+            changed by an orthogonal matrix.  It must therefore also be
+            true that the angle $\theta$ between $\bm{a}$ and $\bm{b}$
+            is unchanged.
+        \item The transform performed by an orthogonal matrix is always
+            a rotation, a reflection, or a combination of the two.
+        \item The determinant of an orthogonal matrix is always $\pm 1$,
+            positive for a pure rotation and negative for a rotation
+            with a reflection.
+    \end{itemize}
+
+\subsubsection*{2.1.3 Transform Composition}
+\begin{itemize}
+    \item Whenever a vector $\bm{v}$ is transformed by a matrix $\bm{M}_1$, then
+        by a matrix $\bm{M}_2$, the result $\bm{v}'$ is calculated by:
+        \begin{equation}
+            \bm{v}' = \bm{M}_2 \left( \bm{M}_2 \bm{v} \right)
+            = \left( \bm{M}_2 \bm{M}_1 \right) \bm{v}
+        \end{equation}
+    \item To perform a transform $\bm{A}$ in coordinate system $A$ in coordinate
+        system $B$, where matrix $\bm{M}$ transforms vectors from $A$ to $B$,
+        the equivalient transform $\bm{B}$ in coordinate system $B$ is
+        \begin{equation}
+            \bm{B} = \bm{M} \bm{A} \bm{M}^{-1}
+        \end{equation}
+\end{itemize}
+
+\subsection*{2.2 Rotations}
+\subsubsection*{2.2.1 Rotation About a Coordinate Axis}
+\begin{align}
+    \bm{M}_{\rot x} \left(\theta\right) &= \begin{bmatrix}
+        1 & 0 & 0 \\
+        0 & \cos \theta & -\sin \theta \\
+        0 & \sin \theta & \cos \theta
+    \end{bmatrix} \\
+    \bm{M}_{\rot x} \left(\theta\right) &= \begin{bmatrix}
+        \cos \theta & 0 & \sin \theta \\
+        0 & 1 & 0 \\
+        -\sin \theta & 0 & \cos \theta
+    \end{bmatrix} \\
+    \bm{M}_{\rot x} \left(\theta\right) &= \begin{bmatrix}
+        \cos \theta & -\sin \theta & 0\\
+        \sin \theta & \cos \theta & 0\\
+        0 & 0 & 1
+    \end{bmatrix}
+\end{align}
+
+\subsubsection*{2.2.2 Rotation About an Arbitrary Axis}
+For a vector $\bm{v}$ rotated about a vector$\bm{a}$ by an angle $\theta$ where the angle
+between $\bm{v}$ and $\bm{a}$ is $\alpha$
+\begin{equation}
+    \bm{v}' = \bm{v}_{\parallel \bm{a}} + \bm{v}_{\perp \bm{a}} \cos \theta
+        + \left( \bm{a} \times \bm{v} \right) \sin \theta
+\end{equation}
+which is expressed in matrix format as
+\begin{equation}
+    \bm{M}_{\rot} \left(\theta, \bm{a}\right) = \begin{bmatrix}
+        \cos\theta + (1 - \cos\theta) a_x^2 & (1 - \cos\theta) a_xa_y - (\sin\theta) a_z & (1 - \cos\theta) a_xa_z + (\sin\theta)a_y \\
+        (1 - \cos\theta) a_xa_y + (\sin\theta) a_z & \cos\theta + (1 - \cos\theta) a_y^2 & (1 - \cos\theta) a_ya_z - (\sin\theta)a_x \\
+        (1 - \cos\theta) a_xa_z - (\sin\theta) a_y & (1 - \cos\theta) a_ya_z + (\sin\theta) a_x & \cos\theta + (1 - \cos\theta) a_z^2
+    \end{bmatrix}
+\end{equation}
+
+\subsubsection*{2.3 Reflections}
+Vector $\bm{v}$ can be reflected through a plane perpendicular to vector $\bm{a}$ (assuming $\bm{a}$ has unit length)
+\begin{equation}
+    \bm{v}' = \bm{v}_{\perp \bm{a}} - \bm{v}_{\parallel \bm{a}}
+\end{equation}
+with matrix representation
+\begin{equation}
+    \bm{v}' = \begin{bmatrix}
+        1 - a_x^2 & -a_xa_y & -a_xa_z \\
+        -a_xa_y & 1 - a_y^2 & -a_ya_z \\
+        -a_xa_z & -a_ya_z & 1-a_z^2
+    \end{bmatrix} \bm{v} - \begin{bmatrix}
+        a_x^2 & a_xa_y & a_xa_z \\
+        a_xa_y & a_y^2 & a_ya_z \\
+        a_xa_z & a_ya_z & a_z^2
+    \end{bmatrix}
+\end{equation}
+Combining the matrix terms into a single matrix, we arrive at the formula
+\begin{equation}
+    \bm{M}_{\reflect}\left(\bm{a}\right) = \begin{bmatrix}
+        1 - 2a_x^2 & -2a_xa_y & -2a_xa_z \\
+        -2a_xa_y & 1 - 2a_y^2 & -2a_ya_z \\
+        -2a_xa_z & -2a_ya_z & 1 - 2a_z^2 \\
+    \end{bmatrix}
+\end{equation}
+We can also construct a transform that negates the the perpendicular component instead of the
+parallel component
+\begin{equation}
+    \bm{v}' = \bm{v}_{\parallel \bm{a}} - \bm{v}_{\perp \bm{a}}
+\end{equation}
+with the matrix form
+\begin{equation}
+    \bm{M}_{\invol}\left(\bm{a}\right) = \begin{bmatrix}
+        2a_x^2 - 1 & 2a_xa_y & 2a_xa_z \\
+        2a_xa_y & 2a_y^2 - 1 & 2a_ya_z \\
+        2a_xa_z & 2a_ya_z & 2a_z^2 - 1 \\
+    \end{bmatrix}
+\end{equation}
+where $\bm{M}_{\invol} \left(\bm{a}\right)$ denotes $\bm{M}$ as an \textit{involution}, which is a
+matrix that, when multiplied by itself, produces the identity matrix.
+
+\subsection*{2.4 Scales}
+A scale transformation aligned to the coordinate axes
+\begin{equation}
+    \bm{M}_{\scale} \left(s_x, s_y, s_z\right) = \begin{bmatrix}
+        s_x & 0 & 0 \\
+        0 & s_y & 0 \\
+        0 & 0 & s_z
+    \end{bmatrix}
+\end{equation}
+To scale a vector $\bm{v}$ along a single arbitrary direction $\bm{a}$ while preserving the vector's
+size in every direction orthogonal to $\bm{a}$
+\begin{equation}
+    \bm{v}' = s\bm{v}_{\parallel \bm{a}} + \bm{v}_{\perp \bm{a}}
+\end{equation}
+where the transformation matrix is
+\begin{equation}
+    \bm{M}_{\scale} \left(s, \bm{a}\right) = \begin{bmatrix}
+        (s-1)a_x^2 + 1 & (s-1)a_xa_y & (s-1)a_xa_z \\
+        (s-1)a_xa_y & (s-1)a_y^2 + 1 & (s-1)a_ya_z \\
+        (s-1)a_xa_z & (s-1)a_ya_z & (s-1)a_z^2 + 1
+    \end{bmatrix}
+\end{equation}
+\end{document}
