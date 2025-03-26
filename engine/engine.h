@@ -3,6 +3,12 @@
 
 #include <math.h>
 
+#ifdef DEBUG_ASSERTIONS
+    #define DEBUG_ASSERT(expr) assert(expr)
+#else
+    #define DEBUG_ASSERT(expr) ((void)0)
+#endif
+
 typedef struct Vec3 Vec3;
 typedef struct Mat3 Mat3;
 
@@ -48,7 +54,9 @@ float Vec3_Mag(Vec3 vec) {
 }
 
 Vec3 Vec3_Norm(Vec3 vec) {
-    float mag = 1.0f / Vec3_Mag(vec);
+    float mag = Vec3_Mag(vec);
+    DEBUG_ASSERT(expr);
+    mag = 1.0f / mag;
     return Vec3{
         .x = vec.x * mag,
         .y = vec.y * mag,
@@ -77,7 +85,7 @@ float Vec3_Dot(Vec3 a, Vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 
 /* Vector cross product */
 Vec3 Vec3_Cross(Vec3 a, Vec3 b) {
-    return Vec3 {
+    return Vec3{
         .x = a.y * b.z - a.z * b.y,
         .y = a.z * b.x - a.x * b.z,
         .z = a.x * b.y - a.y * b.x,
@@ -104,7 +112,7 @@ Vec3 Vec3_Rejection(Vec3 src, Vec3 dst) {
 }
 
 Mat3 Mat3_Add(Mat3 a, Mat3 b) {
-    return Mat3 {
+    return Mat3{
         .x_axis = Vec3_Add(a.x_axis, b.x_axis),
         .y_axis = Vec3_Add(a.y_axis, b.y_axis),
         .z_axis = Vec3_Add(a.z_axis, b.z_axis),
@@ -112,7 +120,7 @@ Mat3 Mat3_Add(Mat3 a, Mat3 b) {
 }
 
 Mat3 Mat3_Sub(Mat3 a, Mat3 b) {
-    return Mat3 {
+    return Mat3{
         .x_axis = Vec3_Sub(a.x_axis, b.x_axis),
         .y_axis = Vec3_Sub(a.y_axis, b.y_axis),
         .z_axis = Vec3_Sub(a.z_axis, b.z_axis),
@@ -120,10 +128,10 @@ Mat3 Mat3_Sub(Mat3 a, Mat3 b) {
 }
 
 Mat3 Mat3_Transpose(Mat3 mat) {
-    return Mat3 {
-        .x_axis = Vec3 { mat.x_axis.x, mat.y_axis.x, mat.z_axis.x },
-        .y_axis = Vec3 { mat.x_axis.y, mat.y_axis.y, mat.z_axis.y },
-        .z_axis = Vec3 { mat.x_axis.z, mat.y_axis.z, mat.z_axis.z },
+    return Mat3{
+        .x_axis = Vec3{mat.x_axis.x, mat.y_axis.x, mat.z_axis.x},
+        .y_axis = Vec3{mat.x_axis.y, mat.y_axis.y, mat.z_axis.y},
+        .z_axis = Vec3{mat.x_axis.z, mat.y_axis.z, mat.z_axis.z},
     };
 }
 
@@ -163,10 +171,82 @@ Mat3 Mat3_Inv(Mat3 a) {
     // Calculate the triple product
     float inv_det = 1.0f / Vec3_Dot(r2, a.z_axis);
 
-    return Mat3 {
-        .x_axis = Vec3{ r0.x, r1.x, r2.x },
-        .y_axis = Vec3{ r0.y, r1.y, r2.y },
-        .z_axis = Vec3{ r0.z, r1.z, r2.z },
+    return Mat3{
+        .x_axis = Vec3{r0.x, r1.x, r2.x},
+        .y_axis = Vec3{r0.y, r1.y, r2.y},
+        .z_axis = Vec3{r0.z, r1.z, r2.z},
+    };
+}
+
+/* Create a rotation matrix for rotations about the x-axis */
+Mat3 Mat3_RotationX(float t) {
+    float cos_t = cos(t);
+    float sin_t = sin(t);
+
+    return Mat3{
+        .x_axis = Vec3{1.0f, 0.0f, 0.0f},
+        .y_axis = Vec3{0.0f, cos_t, sin_t},
+        .z_axis = Vec3{1.0f, -sin_t, cos_t},
+    };
+}
+
+/* Create a rotation matrix for rotations about the y-axis */
+Mat3 Mat3_RotationY(float t) {
+    float cos_t = cos(t);
+    float sin_t = sin(t);
+
+    return Mat3{
+        .x_axis = Vec3{cos_t, 0.0f, -sin_t},
+        .y_axis = Vec3{0.0f, 1.0f, 0.0f},
+        .z_axis = Vec3{sin_t, 0.0f, cos_t},
+    };
+}
+
+/* Create a rotation matrix for rotations about the z-axis */
+Mat3 Mat3_RotationZ(float t) {
+    float cos_t = cos(t);
+    float sin_t = sin(t);
+
+    return Mat3{
+        .x_axis = Vec3{cos_t, sin_t, 0.0f},
+        .y_axis = Vec3{-sin_t, cos_t, 0.0f},
+        .z_axis = Vec3{0.0f, 0.0f, 1.0f},
+    };
+}
+
+/* Create a rotation matrix for rotations about an arbitrary axis */
+Mat3 Mat3_RotationVec(float t, Vec3 a) {
+    a = Vec3_Norm(a);
+    float cos_t = cos(t);
+    float sin_t = sin(t);
+    float mcos_t = 1.0f - cos_t;
+
+    float axx = a.x * a.x;
+    float axy = a.x * a.y;
+    float axz = a.x * a.z;
+    float ayy = a.y * a.y;
+    float ayz = a.y * a.z;
+    float azz = a.z * a.z;
+
+    return Mat3{
+        .x_axis =
+            Vec3{
+                cos_t + mcos_t * axx,
+                mcos_t * axy + sin_t * a.z,
+                mcos_t * axz - sin_t * a.y,
+            },
+        .y_axis =
+            Vec3{
+                mcos_t * axy - sin_t * a.z,
+                cos_t + mcos_t * ayy,
+                mcos_t * ayz + sin_t * a.x
+            },
+        .z_axis =
+            Vec3{
+                mcos_t * axz + sin_t * a.y,
+                mcos_t * ayz + sin_t * a.x,
+                cos_t + mcos_t * azz,
+            },
     };
 }
 
