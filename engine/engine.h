@@ -154,5 +154,21 @@ Mat3 Mat3_Mul(Mat3 a, Mat3 b) {
     return mat;
 }
 
+/* Matrix inversion */
+Mat3 Mat3_Inv(Mat3 a) {
+    Vec3 r0 = Vec3_Cross(a.y_axis, a.z_axis);
+    Vec3 r1 = Vec3_Cross(a.z_axis, a.x_axis);
+    Vec3 r2 = Vec3_Cross(a.x_axis, a.y_axis);
+
+    // Calculate the triple product
+    float inv_det = 1.0f / Vec3_Dot(r2, a.z_axis);
+
+    return Mat3 {
+        .x_axis = Vec3{ r0.x, r1.x, r2.x },
+        .y_axis = Vec3{ r0.y, r1.y, r2.y },
+        .z_axis = Vec3{ r0.z, r1.z, r2.z },
+    };
+}
+
 #endif /* ENGINE_IMPLEMENTATION */
 #endif /* ENGINE_H */
