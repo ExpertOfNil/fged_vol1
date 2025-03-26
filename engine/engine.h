@@ -19,6 +19,8 @@ Vec3 Vec3_Add(Vec3 a, Vec3 b);
 Vec3 Vec3_Sub(Vec3 a, Vec3 b);
 float Vec3_Dot(Vec3 a, Vec3 b);
 Vec3 Vec3_Cross(Vec3 a, Vec3 b);
+Vec3 Vec3_Projection(Vec3 src, Vec3 dst);
+Vec3 Vec3_Rejection(Vec3 src, Vec3 dst);
 
 struct Mat3 {
     Vec3 x_axis;
@@ -81,6 +83,25 @@ Vec3 Vec3_Cross(Vec3 a, Vec3 b) {
         .z = a.x * b.y - a.y * b.x,
     };
 };
+
+/* Vector projection of `src` onto `dst`
+ *
+ * proj_{\vec{b}} \vec{a} = \frac{\vec{a} \cdot \vec{b}}{b^2}
+ */
+Vec3 Vec3_Projection(Vec3 src, Vec3 dst) {
+    float dot = Vec3_Dot(src, dst);
+    float mag = 1.0f / Vec3_Mag(dst);
+    return Vec3_Scale(dst, dot * mag * mag);
+}
+
+/* Vector rejection of `src` onto `dst`
+ *
+ * rej_{\vec{b}} \vec{a} = \vec{a} - proj_{\vec{b}} \vec{a}
+ */
+Vec3 Vec3_Rejection(Vec3 src, Vec3 dst) {
+    Vec3 proj = Vec3_Projection(src, dst);
+    return Vec3_Sub(src, proj);
+}
 
 Mat3 Mat3_Add(Mat3 a, Mat3 b) {
     return Mat3 {
